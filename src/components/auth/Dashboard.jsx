@@ -955,6 +955,7 @@ import toast, { Toaster } from 'react-hot-toast';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
+  
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('upload');
   const [uploadedPhotos, setUploadedPhotos] = useState([]);
@@ -966,8 +967,10 @@ const Dashboard = () => {
     accuracy: 0
   });
 
+  
   useEffect(() => {
     faceService.initialize().catch(console.error);
+    
   }, []);
 
   const handleLogout = () => {
@@ -976,36 +979,36 @@ const Dashboard = () => {
   };
 
   // Face Registration Functions
-  const registerMyFace = async () => {
-    if (!user?.profilePhoto) {
-      toast.error('Please add a profile photo first in your account settings');
-      return;
-    }
+  // const registerMyFace = async () => {
+  //   if (!user?.profilePhoto) {
+  //     toast.error('Please add a profile photo first in your account settings');
+  //     return;
+  //   }
 
-    setProcessing(true);
-    try {
-      const success = await faceService.registerUserFace(user.uid, user.profilePhoto);
-      if (success) {
-        toast.success('✅ Face registered successfully! Now try uploading photos.');
-      } else {
-        toast.error('❌ Failed to register face. Please try a different photo.');
-      }
-    } catch (error) {
-      console.error('Face registration error:', error);
-      toast.error('Failed to register face: ' + error.message);
-    } finally {
-      setProcessing(false);
-    }
-  };
+  //   setProcessing(true);
+  //   try {
+  //     const success = await faceService.registerUserFace(user.uid, user.profilePhoto);
+  //     if (success) {
+  //       toast.success('✅ Face registered successfully! Now try uploading photos.');
+  //     } else {
+  //       toast.error('❌ Failed to register face. Please try a different photo.');
+  //     }
+  //   } catch (error) {
+  //     console.error('Face registration error:', error);
+  //     toast.error('Failed to register face: ' + error.message);
+  //   } finally {
+  //     setProcessing(false);
+  //   }
+  // };
 
-  const checkUserFaceRegistration = async () => {
-    const descriptor = await faceService.getUserDescriptor(user.uid);
-    if (descriptor) {
-      toast.success('✅ Face is registered in database!');
-    } else {
-      toast.error('❌ No face descriptor found in database');
-    }
-  };
+  // const checkUserFaceRegistration = async () => {
+  //   const descriptor = await faceService.getUserDescriptor(user.uid);
+  //   if (descriptor) {
+  //     toast.success('✅ Face is registered in database!');
+  //   } else {
+  //     toast.error('❌ No face descriptor found in database');
+  //   }
+  // };
 
   // Photo Processing Functions
   const onDrop = async (acceptedFiles) => {

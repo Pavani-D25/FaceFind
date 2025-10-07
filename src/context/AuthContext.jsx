@@ -590,55 +590,107 @@ const AuthProvider = ({ children }) => {
   };
 
   // Listen for auth state changes
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          // Get user data from Firestore (which has the profile photo)
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
+//   useEffect(() => {
+//     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+//       if (user) {
+//         try {
+//           // Get user data from Firestore (which has the profile photo)
+//           const userDoc = await getDoc(doc(db, 'users', user.uid));
           
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            setUser({
-              uid: user.uid,
-              email: user.email,
-              name: userData.name || user.displayName,
-              profilePhoto: userData.profilePhoto, // Get from Firestore
-              plan: userData.plan || 'free'
-            });
-          } else {
-            // Create user document if it doesn't exist
-            const userData = {
-              uid: user.uid,
-              name: user.displayName,
-              email: user.email,
-              profilePhoto: null, // No photo initially
-              plan: 'free',
-              createdAt: new Date(),
-              updatedAt: new Date()
-            };
+//           if (userDoc.exists()) {
+//             const userData = userDoc.data();
+//             setUser({
+//               uid: user.uid,
+//               email: user.email,
+//               name: userData.name || user.displayName,
+//               profilePhoto: userData.profilePhoto, // Get from Firestore
+//               plan: userData.plan || 'free'
+//             });
+//           } else {
+//             // Create user document if it doesn't exist
+//             const userData = {
+//               uid: user.uid,
+//               name: user.displayName,
+//               email: user.email,
+//               profilePhoto: null, // No photo initially
+//               plan: 'free',
+//               createdAt: new Date(),
+//               updatedAt: new Date()
+//             };
             
-            await setDoc(doc(db, 'users', user.uid), userData);
-            setUser(userData);
-          }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
+//             await setDoc(doc(db, 'users', user.uid), userData);
+//             setUser(userData);
+//           }
+//         } catch (error) {
+//           console.error('Error fetching user data:', error);
+//           setUser({
+//             uid: user.uid,
+//             email: user.email,
+//             name: user.displayName,
+//             profilePhoto: null, // Fallback to no photo
+//             plan: 'free'
+//           });
+//         }
+//       } else {
+//         setUser(null);
+//       }
+//       setLoading(false);
+//     });
+
+//     return unsubscribe;
+//   }, []);
+
+// In your AuthContext.jsx, update the useEffect:
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        // Get user data from Firestore
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
           setUser({
             uid: user.uid,
             email: user.email,
-            name: user.displayName,
-            profilePhoto: null, // Fallback to no photo
-            plan: 'free'
+            name: userData.name || user.displayName,
+            profilePhoto: userData.profilePhoto,
+            plan: userData.plan || 'free'
           });
+        } else {
+          // Create user document if it doesn't exist
+          const userData = {
+            uid: user.uid,
+            name: user.displayName,
+            email: user.email,
+            profilePhoto: null,
+            plan: 'free',
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+          
+          await setDoc(doc(db, 'users', user.uid), userData);
+          setUser(userData);
         }
-      } else {
-        setUser(null);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setUser({
+          uid: user.uid,
+          email: user.email,
+          name: user.displayName,
+          profilePhoto: null,
+          plan: 'free'
+        });
       }
-      setLoading(false);
-    });
+    } else {
+      setUser(null);
+    }
+    setLoading(false); // MAKE SURE THIS IS CALLED
+  });
 
-    return unsubscribe;
-  }, []);
+  return unsubscribe;
+}, []);
 
   const value = {
     user,
@@ -651,10 +703,17 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  <AuthContext.Provider value={value}>
+    {!loading ? children : (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading...</p>
+        </div>
+      </div>
+    )}
+  </AuthContext.Provider>
+);
 };
 
 export default AuthProvider;
